@@ -31,8 +31,17 @@ const upload = multer({
   }
 });
 
+// Add this middleware before other routes to ensure HTTPS
+app.use((req, res, next) => {
+  if (req.headers['x-forwarded-proto'] === 'http') {
+    return res.redirect(`https://${req.headers.host}${req.url}`);
+  }
+  next();
+});
+
 app.use(cors({
-  origin: 'https://msdf.kansei.graphics'
+  origin: 'https://msdf.kansei.graphics',
+  credentials: true
 }));
 
 // Get current directory
@@ -44,7 +53,10 @@ const MSDF_BINARY = path.join(__dirname, process.platform === 'darwin'
   ? 'msdf-atlas-gen-macos'
   : 'msdf-atlas-gen-linux');
 
-app.use('/output', express.static(path.join(__dirname, 'output')));
+app.use('/output', (req, res, next) => {
+  res.set('Access-Control-Allow-Origin', 'https://msdf.kansei.graphics');
+  next();
+}, express.static(path.join(__dirname, 'output')));
 
 app.post("/api/generate", upload.single('file'), async (req, res) => {
   try {
