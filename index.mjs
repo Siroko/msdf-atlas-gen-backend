@@ -96,8 +96,9 @@ app.post("/api/generate", upload.single('file'), async (req, res) => {
         return res.status(500).json({ error: error.message });
       }
 
-      // Get the server's base URL
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      // Get the server's base URL, checking for X-Forwarded-Proto header
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      const baseUrl = `${protocol}://${req.get('host')}`;
       
       res.json({ 
         success: true, 
