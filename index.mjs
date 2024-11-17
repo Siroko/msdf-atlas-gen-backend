@@ -32,15 +32,17 @@ const upload = multer({
 });
 
 app.use(cors({
-  origin: 'http://localhost:3000'
+  origin: 'https://msdf.kansei.graphics'
 }));
 
 // Get current directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Path to the binary
-const MSDF_BINARY = path.join(__dirname, 'msdf-atlas-gen');
+// Determine the correct binary based on platform
+const MSDF_BINARY = path.join(__dirname, process.platform === 'darwin' 
+  ? 'msdf-atlas-gen-macos'
+  : 'msdf-atlas-gen-linux');
 
 app.use('/output', express.static(path.join(__dirname, 'output')));
 
