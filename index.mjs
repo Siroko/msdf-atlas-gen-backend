@@ -4,6 +4,7 @@ import multer from "multer";
 import { exec } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const app = express();
 
@@ -93,8 +94,8 @@ app.post("/api/generate", upload.single('file'), async (req, res) => {
 
     // Add output configuration
     command.push(`-arfont "${path.join(outputDir, outputName)}.arfont"`);
-    command.push(`-imageout "${path.join(outputDir, outputName)}.png"`);
-    command.push(`-json "${path.join(outputDir, outputName)}.json"`);
+    // command.push(`-imageout "${path.join(outputDir, outputName)}.png"`);
+    // command.push(`-json "${path.join(outputDir, outputName)}.json"`);
 
     const fullCommand = command.join(' ');
     console.log('Executing command:', fullCommand);
@@ -119,11 +120,24 @@ app.post("/api/generate", upload.single('file'), async (req, res) => {
         output: {
           font: `${baseUrl}/output/${outputName}.arfont`,
           // Optionally include other generated files
-          image: `${baseUrl}/output/${outputName}.png`,
-          json: `${baseUrl}/output/${outputName}.json`
+        //   image: `${baseUrl}/output/${outputName}.png`,
+        //   json: `${baseUrl}/output/${outputName}.json`
         },
         config: req.body
       });
+
+      // Clean up files after 15 seconds
+      setTimeout(() => {
+        // Remove the uploaded font file
+        fs.unlink(fontFile.path, (err) => {
+          if (err) console.error('Error removing uploaded font:', err);
+        });
+
+        // Remove the generated .arfont file
+        fs.unlink(path.join(outputDir, `${outputName}.arfont`), (err) => {
+          if (err) console.error('Error removing generated arfont:', err);
+        });
+      }, 15000); // 15 seconds
     });
 
   } catch (error) {
